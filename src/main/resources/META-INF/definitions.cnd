@@ -1,0 +1,11 @@
+<jmix = 'http://www.jahia.org/jahia/mix/1.0'>
+<jnt = 'http://www.jahia.org/jahia/nt/1.0'>
+
+[jnt:clusterLuceneReindex] > jnt:content, jmix:studioOnly, jmix:siteComponent
+
+[jnt:reindexAdminInfo] > jnt:content
+ + * (jnt:nodeToReindex)
+
+[jnt:nodeToReindex] > jnt:content
+ - nodeId (string) mandatory
+
