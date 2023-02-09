@@ -34,6 +34,7 @@
   <p><h3>Current environemnt is no Cluster!</h3></p>
 </c:if>
 <c:if test="${flowModel.cluster}">
+  <div style="background-color: #E0182D; color: #FFFFFF; padding: 15px; margin-bottom: 20px;">Be careful to start indexation. It could need long time and could be started multiple times!</div>
   <h4>Follow clusternodes can be reindexed:</h4>
   <form action="${flowExecutionUrl}" method="post">
   <table class="table table-bordered table-striped table-sortable">
@@ -50,6 +51,8 @@
       <button type="submit" name="_eventId_addreindex" value="${node.id}" class="btn btn-default btn-raised">Reindex</button></td>
     </tr>
   </c:forEach>
+    <tr>
+      <td colspan="2" align="right"><button type="submit" name="_eventId_reindexfull" value="${node.id}" class="btn btn-default btn-raised">Reindex all available cluster nodes</button></td></tr>
     </table>
   </form>
   

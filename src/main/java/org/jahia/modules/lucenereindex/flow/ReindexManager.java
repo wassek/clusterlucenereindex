@@ -60,35 +60,80 @@ public class ReindexManager implements Serializable {
 		 * null); manager.listNodes();
 		 */
 	}
-	
+
+	private String getClusterId(Object clusternode) {
+		try {
+
+			return (String) MethodUtils.invokeExactMethod(clusternode, "getId", null);
+		} catch (Exception ex) {
+			logger.error("Error to get Cluster members", ex);
+		}
+		return null;
+	}
+
 	public void putNodeForReindex(ExternalContext context) {
-		
-		final String nodeToReindex=context.getRequestParameterMap().get("_eventId_addreindex");
+
+		final String nodeToReindex = context.getRequestParameterMap().get("_eventId_addreindex");
 		logger.info("Add Node " + nodeToReindex + " to reindexation!");
 		try {
-        JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback() {
-            @Override
-            public Object doInJCR(JCRSessionWrapper session) throws RepositoryException { 
-          		JCRNodeWrapper admin = session.getNode("/settings/reindexAdmin");
-          		for (JCRNodeWrapper node : admin.getNodes()) {
-        			if (node.getProperty("nodeId").getString().equals(nodeToReindex)) {
-        				
-        				logger.info("Node already in list to reindex");
-           				return null;    				
-        				
-        			}
-        		}
-          		//Add node
-          		JCRNodeWrapper indexNode = admin.addNode("reindex" + System.currentTimeMillis(), "jnt:nodeToReindex");
-          		indexNode.setProperty("nodeId", nodeToReindex);
-          		indexNode.saveSession();
-                return null;
-            }
-        });
+			JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback() {
+				@Override
+				public Object doInJCR(JCRSessionWrapper session) throws RepositoryException {
+					JCRNodeWrapper admin = session.getNode("/settings/reindexAdmin");
+					for (JCRNodeWrapper node : admin.getNodes()) {
+						if (node.getProperty("nodeId").getString().equals(nodeToReindex)) {
+
+							logger.info("Node already in list to reindex");
+							return null;
+
+						}
+					}
+					// Add node
+					JCRNodeWrapper indexNode = admin.addNode("reindex" + System.currentTimeMillis(),
+							"jnt:nodeToReindex");
+					indexNode.setProperty("nodeId", nodeToReindex);
+					indexNode.saveSession();
+					return null;
+				}
+			});
 		} catch (RepositoryException ex) {
 			logger.error("Cannot add node to reindex list", ex);
 		}
-		
+
 	}
 
+	public void reindexFull(ExternalContext context) {
+
+		logger.info("Reindex all available cluster members!");
+		final HashSet nodes = getClusterNodes();
+		for (Object clusternode : nodes) {
+			final String nodeToReindex = getClusterId(clusternode);
+			try {
+				JCRTemplate.getInstance().doExecuteWithSystemSession(new JCRCallback() {
+					@Override
+					public Object doInJCR(JCRSessionWrapper session) throws RepositoryException {
+						JCRNodeWrapper admin = session.getNode("/settings/reindexAdmin");
+						for (JCRNodeWrapper node : admin.getNodes()) {
+							if (node.getProperty("nodeId").getString().equals(nodeToReindex)) {
+
+								logger.info("Node already in list to reindex");
+								return null;
+
+							}
+						}
+						// Add node
+						JCRNodeWrapper indexNode = admin.addNode("reindex" + System.currentTimeMillis(),
+								"jnt:nodeToReindex");
+						indexNode.setProperty("nodeId", nodeToReindex);
+						indexNode.saveSession();
+						return null;
+					}
+				});
+
+			} catch (RepositoryException ex) {
+				logger.error("Cannot add node to reindex list", ex);
+			}
+		}
+
+	}
 }
